@@ -58,7 +58,7 @@ lead_researcher = Agent(
         "If any agent encounters issues, provide helpful guidance or redirect to appropriate specialist."
     ),
     handoffs=[planning_agent, research_coordinator, fact_checker_agent, 
-              source_evaluator_agent],
+              source_evaluator_agent, synthesis_agent,conflict_resolver_agent, report_writer],
     model=llm_model
 )
 
@@ -110,7 +110,7 @@ async def main():
     research_system = DeepResearchSystem()
     
     # Run a specific query
-    query = "What are pros and cons of electric cars?"
+    query = "Analyze the economic impact of remote work policies on small businesses vs large corporations, including productivity data and employee satisfaction trends"
     result = await research_system.research(query)
     
     print("\n" + "="*30)
