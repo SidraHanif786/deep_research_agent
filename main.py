@@ -1,7 +1,8 @@
-from agents import Agent, Runner, AsyncOpenAI, OpenAIChatCompletionsModel, set_tracing_disabled, function_tool
+from agents import Agent, Runner, AsyncOpenAI, OpenAIChatCompletionsModel, set_tracing_disabled, function_tool, RunContextWrapper
+import asyncio
 import os
 from dotenv import load_dotenv
-import asyncio
+from dataclasses import dataclass
 
 # Load environment variables
 load_dotenv()
@@ -22,30 +23,40 @@ llm_model: OpenAIChatCompletionsModel = OpenAIChatCompletionsModel(
     openai_client=external_client
 )
 
-# Define tools 
-@function_tool
-def multiply(a: int, b: int) -> int:
-    """Exact multiplication ___ """
-    return a * b
+# User 
+@dataclass
+class UserInfo1:
+    name: str
+    uid: int
+    location: str = "Pakistan"
 
 @function_tool
-def sum(a: int, b: int) -> int:
-    """Exact addition ___ """
-    return a + b
+async def fetch_user_age(wrapper: RunContextWrapper[UserInfo1]) -> str:
+    '''Returns the age of the user.'''
+    return f"User {wrapper.context.name} is 30 years old"
 
-# Agent
-math_agent: Agent = Agent(
-    name="MathAgent",
-    instructions="You are a helpful math assistant."
-                "Always use tools for math questions. Always follow DMAS rule (division, multiplication, addition, subtraction). "
-                "Explain answers clearly and briefly for beginners.",
-    model=llm_model,
-    tools=[multiply, sum]
-    )
+@function_tool
+async def fetch_user_location(wrapper: RunContextWrapper[UserInfo1]) -> str:
+    '''Returns the location of the user.'''
+    return f"User {wrapper.context.name} is from {wrapper.context.location}"
 
 async def main():
+    user_info = UserInfo1(name="Muhammad Qasim", uid=123)
 
-    result: Runner = await Runner.run(math_agent, "what is 19 + 23 * 2?")
+    agent = Agent[UserInfo1](
+        name="Assistant",
+        tools=[fetch_user_age,fetch_user_location],
+        model=llm_model
+    )
+
+    result = await Runner.run(
+        starting_agent=agent,
+        input="What is the age of the user? current location of his/her?",
+        context=user_info,
+    )
+
     print(result.final_output)
+    # The user John is 47 years old.
+
 
 asyncio.run(main())
