@@ -32,6 +32,9 @@ llm_model: OpenAIChatCompletionsModel = OpenAIChatCompletionsModel(
 # Import agents
 from research_agents import research_coordinator, fact_checker_agent, source_evaluator_agent
 from planning_agent import planning_agent
+from synthesis_agent import synthesis_agent, conflict_resolver_agent
+from report_writer import report_writer
+
 
 # Force all agents to use Gemini model
 research_coordinator.model = llm_model
@@ -48,6 +51,9 @@ lead_researcher = Agent(
         "2. Then hand off to Research Coordinator to gather information\n"
         "3. Use Fact Checker to verify important claims\n"
         "4. Use Source Evaluator to assess source quality\n"
+        "5. Then hand off to Synthesis Agent to combine findings\n"
+        "6. Use Conflict Resolver for contradictory information\n"
+        "7. Finally hand off to Report Writer to create the final report\n\n"
         "Monitor progress and ensure all research tasks are completed properly.\n"
         "If any agent encounters issues, provide helpful guidance or redirect to appropriate specialist."
     ),
